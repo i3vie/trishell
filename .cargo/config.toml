@@ -1,0 +1,2 @@
+[profile.release]
+rustflags = ["-Zlocation-detail=none", "-Zfmt-debug=none"]

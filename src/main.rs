@@ -1,7 +1,21 @@
+use std::env;
 use std::io::{self, ErrorKind, Write};
+use std::path::PathBuf;
 use std::process::{Command, exit};
 
+mod builtins;
+
 fn main() {
+
+    let mut pwd: PathBuf = match env::current_dir() {
+        Ok(pbuf) => pbuf,
+        Err(_) => PathBuf::new(),
+    };
+
+    if pwd == PathBuf::new() {
+        pwd.push("/");
+    }
+
     loop {
         print!("$ ");
         io::stdout().flush().unwrap();
@@ -19,6 +33,18 @@ fn main() {
             let status = Command::new(command)
                 .args(args)
                 .status();
+
+            let (effect, response) = builtins::parse_builtins(command, &args);
+
+            match effect {
+                builtins::ReturnedEffect::ChangePath => {
+                    // change the path based on whatever is in response
+                    println!("{:?}", response)
+                }
+                builtins::ReturnedEffect::NoMatch => {
+                    println!("no matching builtin found, trying binaries")
+                }
+            }
 
             if let Err(e) = status {
                 if e.kind() == ErrorKind::NotFound {

@@ -1,6 +1,16 @@
+cargo-features = ["profile-rustflags"]
+
 [package]
 name = "trishell"
 version = "0.0.0"
 edition = "2021"
 
+[profile.release] # This is optimized for microscopic binaries
+strip = true
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
 [dependencies]
+
