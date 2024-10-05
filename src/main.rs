@@ -30,27 +30,29 @@ fn main() {
 
         let parts: Vec<&str> = input.split_whitespace().collect();
         if let Some((command, args)) = parts.split_first() {
-            let status = Command::new(command)
-                .args(args)
-                .status();
 
             let (effect, response) = builtins::parse_builtins(command, &args);
 
             match effect {
                 builtins::ReturnedEffect::ChangePath => {
                     // change the path based on whatever is in response
-                    println!("{:?}", response)
+                    println!("builtin was {} with response {:?}", command, response)
                 }
                 builtins::ReturnedEffect::NoMatch => {
-                    println!("no matching builtin found, trying binaries")
-                }
-            }
+                    println!("no matching builtin found, trying binaries");
 
-            if let Err(e) = status {
-                if e.kind() == ErrorKind::NotFound {
-                    eprintln!("trishell: command not found: {}", command)
-                } else {
-                    eprintln!("Failed to execute command: {}", e.kind());
+                    let status = Command::new(command)
+                        .args(args)
+                        .status();
+    
+                    if let Err(e) = status {
+                        if e.kind() == ErrorKind::NotFound {
+                            eprintln!("trishell: command not found: {}", command)
+                        } else {
+                            eprintln!("Failed to execute command: {}", e.kind());
+                        }
+                    }
+                    
                 }
             }
         }

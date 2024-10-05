@@ -7,9 +7,6 @@ pub enum ReturnedEffect {
 }
 
 pub fn parse_builtins(command: &str, args: &[&str]) -> (ReturnedEffect, Vec<String>) {
-    println!("Command: {}", command);
-    println!("Arguments: {:?}", args);
-
     match command {
         "cd" => {
             // Here you might want to handle the path argument if necessary
