@@ -6,6 +6,7 @@ pub enum ReturnedEffect {
     NoMatch,
 }
 
+#[allow(unused_variables)]
 pub fn parse_builtins(command: &str, args: &[&str]) -> (ReturnedEffect, Vec<String>) {
     match command {
         "cd" => {
