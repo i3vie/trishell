@@ -39,8 +39,6 @@ fn main() {
                     println!("builtin was {} with response {:?}", command, response)
                 }
                 builtins::ReturnedEffect::NoMatch => {
-                    println!("no matching builtin found, trying binaries");
-
                     let status = Command::new(command)
                         .args(args)
                         .status();
@@ -52,7 +50,7 @@ fn main() {
                             eprintln!("Failed to execute command: {}", e.kind());
                         }
                     }
-                    
+
                 }
             }
         }
