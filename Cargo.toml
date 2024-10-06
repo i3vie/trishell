@@ -13,4 +13,6 @@ codegen-units = 1
 panic = "abort"
 
 [dependencies]
+dirs = "5.0.1"
+path-absolutize = "3.1.1"
 

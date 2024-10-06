@@ -1,20 +1,10 @@
-use std::env;
 use std::io::{self, ErrorKind, Write};
-use std::path::PathBuf;
 use std::process::{Command, exit};
 
 mod builtins;
 
+#[allow(unused_variables)]
 fn main() {
-
-    let mut pwd: PathBuf = match env::current_dir() {
-        Ok(pbuf) => pbuf,
-        Err(_) => PathBuf::new(),
-    };
-
-    if pwd == PathBuf::new() {
-        pwd.push("/");
-    }
 
     loop {
         print!("$ ");
@@ -34,11 +24,8 @@ fn main() {
             let (effect, response) = builtins::parse_builtins(command, &args);
 
             match effect {
-                builtins::ReturnedEffect::ChangePath => {
-                    // change the path based on whatever is in response
-                    println!("builtin was {} with response {:?}", command, response)
-                }
-                builtins::ReturnedEffect::NoMatch => {
+                builtins::ReturnedEffect::NoEffect => {} // Shell main doesn't have to do anything
+                builtins::ReturnedEffect::NoMatch => { // No matching builtin
                     let status = Command::new(command)
                         .args(args)
                         .status();
