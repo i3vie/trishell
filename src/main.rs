@@ -15,43 +15,53 @@ fn main() {
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
-        let input = input.trim();
+        // Check the result of read_line
+        match io::stdin().read_line(&mut input) {
+            Ok(0) => {
+                // Detected Ctrl-D (EOF)
+                exit(0);
+            }
+            Ok(_) => {
+                let input = input.trim();
 
-        if input == "exit" {
-            exit(0);
-        }
+                if input == "exit" {
+                    exit(0);
+                }
 
-        let mut parts: Vec<&str> = input.split_whitespace().collect();
-        if let Some((command, args)) = parts.split_first_mut() {
+                let mut parts: Vec<&str> = input.split_whitespace().collect();
+                if let Some((command, args)) = parts.split_first_mut() {
+                    let mut temp_args: Vec<String> = Vec::new();
 
-            let mut temp_args: Vec<String> = Vec::new(); // FUCK
+                    args.iter().for_each(|&s| {
+                        let new_str = s.replace("~", home_str);
+                        temp_args.push(new_str);
+                    });
 
-            args.iter().for_each(|&s| {
-                let new_str = s.replace("~", home_str);
-                temp_args.push(new_str); // FUUUUCK
-            });
+                    let updated_args: Vec<&str> = temp_args.iter().map(|s| s.as_str()).collect(); 
 
-            let updated_args: Vec<&str> = temp_args.iter().map(|s| s.as_str()).collect(); // AAAAAAAAAA
+                    let (effect, response) = builtins::parse_builtins(command, updated_args.as_slice());
 
-            let (effect, response) = builtins::parse_builtins(command, updated_args.as_slice());
+                    match effect {
+                        builtins::ReturnedEffect::NoEffect => {}
+                        builtins::ReturnedEffect::NoMatch => { 
+                            let status = Command::new(&mut *command)
+                                .args(updated_args)
+                                .status();
 
-            match effect {
-                builtins::ReturnedEffect::NoEffect => {} // Shell main doesn't have to do anything
-                builtins::ReturnedEffect::NoMatch => { // No matching builtin
-                    let status = Command::new(&mut *command)
-                        .args(updated_args)
-                        .status();
-    
-                    if let Err(e) = status {
-                        if e.kind() == ErrorKind::NotFound {
-                            eprintln!("trishell: command not found: {}", command)
-                        } else {
-                            eprintln!("Failed to execute command: {}", e.kind());
+                            if let Err(e) = status {
+                                if e.kind() == ErrorKind::NotFound {
+                                    eprintln!("trishell: command not found: {}", command);
+                                } else {
+                                    eprintln!("Failed to execute command: {}", e.kind());
+                                }
+                            }
                         }
                     }
-
                 }
+            }
+            Err(e) => {
+                eprintln!("Error reading input: {}", e);
+                // You might want to handle specific errors here if needed
             }
         }
     }
