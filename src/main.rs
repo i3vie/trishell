@@ -18,15 +18,15 @@ fn main() {
             exit(0);
         }
 
-        let parts: Vec<&str> = input.split_whitespace().collect();
-        if let Some((command, args)) = parts.split_first() {
-
-            let (effect, response) = builtins::parse_builtins(command, &args);
+        let mut parts: Vec<&str> = input.split_whitespace().collect();
+        if let Some((command, args)) = parts.split_first_mut() {
+            let mut args = args;
+            let (effect, response) = builtins::parse_builtins(command, &mut args);
 
             match effect {
                 builtins::ReturnedEffect::NoEffect => {} // Shell main doesn't have to do anything
                 builtins::ReturnedEffect::NoMatch => { // No matching builtin
-                    let status = Command::new(command)
+                    let status = Command::new(&mut *command)
                         .args(args)
                         .status();
     
