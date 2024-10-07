@@ -50,7 +50,11 @@ pub fn parse_prompt(config: &Yaml) -> String {
     );
 
     full_dir = full_dir.replace(&home_string, "~");
-    front_dir = front_dir.replace(&home_string, "~");
+    front_dir = if &home_string == &current_dir.to_str().unwrap() {
+        String::from("~")
+    } else {
+        front_dir
+    };
 
     let mut prompt = prompt_format.replace("$U", get_current_username().unwrap().to_str().unwrap());
     prompt = prompt.replace("$H", fs::read_to_string("/proc/sys/kernel/hostname").unwrap().trim());
