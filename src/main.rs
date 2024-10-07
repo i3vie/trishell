@@ -1,12 +1,10 @@
 #![feature(const_option)]
 
-use std::fs;
 use std::io::{self, ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, exit};
-use users::get_current_username;
 
-use config::get_config;
+use config::{get_config, parse_prompt};
 use dirs::home_dir;
 
 mod builtins;
@@ -19,12 +17,8 @@ fn main() {
     let config = get_config();
 
     loop {
-        let prompt_format = config["prompt_format"].as_str().unwrap();
 
-        let mut prompt = prompt_format.replace("$U", get_current_username().unwrap().to_str().unwrap());
-        prompt = prompt.replace("$H", fs::read_to_string("/proc/sys/kernel/hostname").unwrap().trim());
-        prompt = prompt.replace("$D", std::env::current_dir().unwrap().as_os_str().to_str().unwrap());
-        prompt = prompt.replace("$$", "$");
+        let prompt = parse_prompt(&config);
 
         print!("{}", prompt);
         io::stdout().flush().unwrap();

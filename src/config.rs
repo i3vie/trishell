@@ -1,5 +1,6 @@
 use std::fs;
 
+use users::get_current_username;
 use yaml_rust::{Yaml, YamlLoader};
 
 extern crate yaml_rust;
@@ -10,7 +11,8 @@ const DEFAULT_CONFIG: &str = "
 
 # $U is the username
 # $H is the hostname
-# $D is the current dir
+# $D is the current absolute directory
+# $d is the current directory name only
 # $$ is a literal $
 
 prompt_format: \"$U@$H $$ \"
@@ -27,4 +29,15 @@ pub fn get_config() -> Yaml {
     let config = &documents[0];
 
     config.clone()
+}
+
+pub fn parse_prompt(config: &Yaml) -> String {
+    let prompt_format = config["prompt_format"].as_str().unwrap();
+
+    let mut prompt = prompt_format.replace("$U", get_current_username().unwrap().to_str().unwrap());
+    prompt = prompt.replace("$H", fs::read_to_string("/proc/sys/kernel/hostname").unwrap().trim());
+    prompt = prompt.replace("$D", std::env::current_dir().unwrap().as_os_str().to_str().unwrap());
+    prompt = prompt.replace("$$", "$");
+
+    prompt
 }
