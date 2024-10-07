@@ -1,5 +1,5 @@
 // builtins.rs
-use std::{env::{set_var, var}, path::{Path, PathBuf}, process::exit, vec::Vec};
+use std::{env::set_var, path::{Path, PathBuf}, process::exit, vec::Vec};
 use dirs::home_dir;   // We just use the crate because there are always edge cases
 use path_absolutize::*;
 
@@ -40,7 +40,7 @@ pub fn parse_builtins(command: &str, args: &[&str]) -> (ReturnedEffect, Vec<Stri
             );
         }
         "pwd" => {
-            println!("{}", var("PWD").unwrap());
+            println!("{}", std::env::current_dir().unwrap().display());
             return (ReturnedEffect::NoEffect, Vec::new());
         }
         "exit" => {

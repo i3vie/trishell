@@ -1,17 +1,32 @@
+#![feature(const_option)]
+
+use std::fs;
 use std::io::{self, ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, exit};
+use users::get_current_username;
 
+use config::get_config;
 use dirs::home_dir;
 
 mod builtins;
+mod config;
 
-#[allow(unused_variables)]
 fn main() {
     let home = home_dir().unwrap_or_else(|| PathBuf::from("/"));
     let home_str = home.to_str().unwrap();
+
+    let config = get_config();
+
     loop {
-        print!("$ ");
+        let prompt_format = config["prompt_format"].as_str().unwrap();
+
+        let mut prompt = prompt_format.replace("$U", get_current_username().unwrap().to_str().unwrap());
+        prompt = prompt.replace("$H", fs::read_to_string("/proc/sys/kernel/hostname").unwrap().trim());
+        prompt = prompt.replace("$D", std::env::current_dir().unwrap().as_os_str().to_str().unwrap());
+        prompt = prompt.replace("$$", "$");
+
+        print!("{}", prompt);
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
@@ -39,7 +54,7 @@ fn main() {
 
                     let updated_args: Vec<&str> = temp_args.iter().map(|s| s.as_str()).collect(); 
 
-                    let (effect, response) = builtins::parse_builtins(command, updated_args.as_slice());
+                    let (effect, _response) = builtins::parse_builtins(command, updated_args.as_slice());
 
                     match effect {
                         builtins::ReturnedEffect::NoEffect => {}
