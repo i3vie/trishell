@@ -1,11 +1,13 @@
 #![feature(const_option)]
 
+use std::env;
 use std::io::{self, ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, exit};
 
 use config::{get_config, parse_prompt};
 use dirs::home_dir;
+use regex::Regex;
 
 mod builtins;
 mod config;
@@ -15,6 +17,8 @@ fn main() {
     let home_str = home.to_str().unwrap();
 
     let config = get_config();
+
+    let env_var_regex = Regex::new(r"\$(\w+)").unwrap();
 
     loop {
 
@@ -31,7 +35,12 @@ fn main() {
                 exit(0);
             }
             Ok(_) => {
-                let input = input.trim();
+                let input_raw = input.trim();
+
+                let input = env_var_regex.replace_all(input_raw, |caps: &regex::Captures| {
+                    let var_name = &caps[1];
+                    env::var(var_name).unwrap_or_else(|_| "".to_string())
+                }).to_string();
 
                 if input == "exit" {
                     exit(0);

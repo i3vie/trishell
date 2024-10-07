@@ -20,7 +20,7 @@ prompt_format: \"$U@$H [$D] $$ \"
 
 ";
 
-pub fn get_config() -> Yaml {
+pub fn get_config() -> Yaml { // TODO: Function to create the directory, file and dump the default config into it
     let mut config_file = dirs::config_dir().unwrap();
     config_file.push("./trishell/config.yml");
 
