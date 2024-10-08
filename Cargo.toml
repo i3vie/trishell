@@ -15,6 +15,10 @@ panic = "abort"
 [dependencies]
 dirs = "5.0.1"
 path-absolutize = "3.1.1"
-regex = "1.11.0"
 users = "0.11.0"
 yaml-rust = "0.4.5"
+
+[dependencies.regex]
+version = "1.11.0"
+default-features = false
+features = ["std", "unicode-perl"]
