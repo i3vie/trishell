@@ -28,10 +28,10 @@ fn main() {
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
-        // Check the result of read_line
+        // match on the result of read_line
         match io::stdin().read_line(&mut input) {
             Ok(0) => {
-                // Detected Ctrl-D (EOF)
+                // eof
                 exit(0);
             }
             Ok(_) => {
@@ -79,7 +79,6 @@ fn main() {
             }
             Err(e) => {
                 eprintln!("Error reading input: {}", e);
-                // You might want to handle specific errors here if needed
             }
         }
     }
