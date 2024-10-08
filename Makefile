@@ -1,6 +1,3 @@
-run:
-	cargo run
-
 release-x86_64:
 	mkdir -p output
 	cargo build --release --target x86_64-unknown-linux-gnu
