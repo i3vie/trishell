@@ -1,4 +1,5 @@
 # trishell
+if you want to use the makefile for smallest possible releases ensure that `upx` is on your path
 ## support
 ### architectures
 - x86_64
