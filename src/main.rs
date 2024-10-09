@@ -1,5 +1,6 @@
 #![feature(const_option)]
 
+use std::collections::HashMap;
 use std::env;
 use std::io::{self, ErrorKind, Write};
 use std::path::PathBuf;
@@ -20,6 +21,8 @@ fn main() {
 
     let env_var_regex = Regex::new(r"\$(\w+)").unwrap();
 
+    let env_var_assign_regex = Regex::new(r#"(?m)(?P<key>\w+)=["'](?P<value>[^"']*)["']|(?P<key2>\w+)=(?P<value2>[^\s"']+)"#).unwrap();
+
     loop {
 
         let prompt = parse_prompt(&config);
@@ -37,20 +40,27 @@ fn main() {
             Ok(_) => {
                 let input_raw = input.trim();
 
-                let input = env_var_regex.replace_all(input_raw, |caps: &regex::Captures| {
+                let mut input = env_var_regex.replace_all(input_raw, |caps: &regex::Captures| {
                     let var_name = &caps[1];
                     env::var(var_name).unwrap_or_else(|_| "".to_string())
-                }).to_string();
+                }).to_string(); // Substitution is performed first because That's Just How It Is
+
+                let mut env_vars = HashMap::new();
+                for caps in env_var_assign_regex.captures_iter(&input) {
+                    env_vars.insert(caps["key"].to_string(), caps["value"].to_string());
+                }
+                input = env_var_assign_regex.replace_all(&input, "").trim().to_string();
 
                 if input == "exit" {
                     exit(0);
                 }
 
-                let mut parts: Vec<&str> = input.split_whitespace().collect();
+                //let mut parts: Vec<&str> = input.split_whitespace().collect();
+                let mut parts: Vec<String> = shell_words::split(&input).unwrap();
                 if let Some((command, args)) = parts.split_first_mut() {
                     let mut temp_args: Vec<String> = Vec::new();
 
-                    args.iter().for_each(|&s| {
+                    args.iter().for_each(|s| {
                         let new_str = s.replace("~", home_str);
                         temp_args.push(new_str);
                     });
@@ -63,7 +73,8 @@ fn main() {
                         builtins::ReturnedEffect::NoEffect => {}
                         builtins::ReturnedEffect::NoMatch => { 
                             let status = Command::new(&mut *command)
-                                .args(updated_args)
+                                .args(&updated_args)
+                                .envs(&env_vars)
                                 .status();
 
                             if let Err(e) = status {
