@@ -19,9 +19,10 @@ fn main() {
 
     let config = get_config();
 
-    let env_var_regex = Regex::new(r"\$(\w+)").unwrap();
+    let sub_env_var_regex = Regex::new(r"\$(\w+)").unwrap();
 
-    let env_var_assign_regex = Regex::new(r#"(?m)(?P<key>\w+)=["'](?P<value>[^"']*)["']|(?P<key2>\w+)=(?P<value2>[^\s"']+)"#).unwrap();
+    let single_word_env_var_regex = Regex::new(r#"(?P<key>[A-Za-z_][A-Za-z0-9_]*)=(?P<value>[^ ]+)"#).unwrap();
+    let multiword_env_var_regex = Regex::new(r#"(?P<key>[A-Za-z_][A-Za-z0-9_]*)=["'](?P<value>[^"']*)["']"#).unwrap();
 
     loop {
 
@@ -40,16 +41,22 @@ fn main() {
             Ok(_) => {
                 let input_raw = input.trim();
 
-                let mut input = env_var_regex.replace_all(input_raw, |caps: &regex::Captures| {
+                let mut input = sub_env_var_regex.replace_all(input_raw, |caps: &regex::Captures| {
                     let var_name = &caps[1];
                     env::var(var_name).unwrap_or_else(|_| "".to_string())
                 }).to_string(); // Substitution is performed first because That's Just How It Is
 
                 let mut env_vars = HashMap::new();
-                for caps in env_var_assign_regex.captures_iter(&input) {
+
+                for caps in multiword_env_var_regex.captures_iter(&input) {
                     env_vars.insert(caps["key"].to_string(), caps["value"].to_string());
                 }
-                input = env_var_assign_regex.replace_all(&input, "").trim().to_string();
+                input = multiword_env_var_regex.replace_all(&input, "").trim().to_string();
+
+                for caps in single_word_env_var_regex.captures_iter(&input) {
+                    env_vars.insert(caps["key"].to_string(), caps["value"].to_string());
+                }
+                input = single_word_env_var_regex.replace_all(&input, "").trim().to_string();
 
                 if input == "exit" {
                     exit(0);
