@@ -16,7 +16,7 @@ panic = "abort"
 dirs = "5.0.1"
 path-absolutize = "3.1.1"
 shell-words = "1.1.0"
-users = "0.11.0"
+whoami = "1.5.2"
 yaml-rust = "0.4.5"
 
 [dependencies.regex]

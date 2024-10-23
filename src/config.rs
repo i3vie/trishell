@@ -1,7 +1,8 @@
 use std::{ffi::OsStr, fs};
 
 use dirs::home_dir;
-use users::get_current_username;
+use whoami::{fallible, username};
+use fallible::hostname;
 use yaml_rust::{Yaml, YamlLoader};
 
 extern crate yaml_rust;
@@ -56,8 +57,8 @@ pub fn parse_prompt(config: &Yaml) -> String {
         front_dir
     };
 
-    let mut prompt = prompt_format.replace("$U", get_current_username().unwrap().to_str().unwrap());
-    prompt = prompt.replace("$H", fs::read_to_string("/proc/sys/kernel/hostname").unwrap().trim());
+    let mut prompt = prompt_format.replace("$U", username().as_str());
+    prompt = prompt.replace("$H", hostname().unwrap_or(String::from("")).as_str());
     prompt = prompt.replace("$D", &full_dir);
     prompt = prompt.replace("$d", &front_dir);
     prompt = prompt.replace("$$", "$");
