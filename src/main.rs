@@ -1,5 +1,3 @@
-#![feature(const_option)]
-
 use std::collections::HashMap;
 use std::env;
 use std::io::{self, ErrorKind, Write};
