@@ -4,6 +4,8 @@ if you want to use the makefile for smallest possible releases ensure that `upx`
 ### architectures
 - x86_64
 - aarch64
+- riscv64
+it should probably be buildable on anything that rust can target
 ### features
 #### builtins
 - cd
