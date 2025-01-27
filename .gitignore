@@ -24,3 +24,5 @@ Cargo.lock
 
 /target
 /output
+.idea
+.vscode

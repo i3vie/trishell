@@ -1,4 +1,4 @@
-use std::{ffi::OsStr, fs};
+use std::{ffi::OsStr, fs, path::PathBuf};
 
 use dirs::home_dir;
 use whoami::{fallible, username};
@@ -21,16 +21,36 @@ prompt_format: \"$U@$H [$D] $$ \"
 
 ";
 
-pub fn get_config() -> Yaml { // TODO: Function to create the directory, file and dump the default config into it
+pub fn config_path() -> PathBuf {
     let mut config_file = dirs::config_dir().unwrap();
     config_file.push("./trishell/config.yml");
 
+    config_file
+}
+
+pub fn get_config() -> Yaml { // TODO: Function to create the directory, file and dump the default config into it
+    let config_file = config_path();
     let contents = fs::read_to_string(&config_file).or::<String>(Ok(DEFAULT_CONFIG.to_string())).unwrap();
 
     let documents = YamlLoader::load_from_str(contents.as_str()).unwrap();
     let config = &documents[0];
 
     config.clone()
+}
+
+pub fn create_config_file() {
+    let config_file = config_path();
+
+    if config_file.exists() {
+        return;
+    }
+
+    #[cfg(debug_assertions)]
+    {
+        println!("Creating config file at {:?}", config_file);
+    }
+    fs::create_dir_all(config_file.parent().unwrap()).unwrap();
+    fs::write(&config_file, DEFAULT_CONFIG).unwrap();
 }
 
 pub fn parse_prompt(config: &Yaml) -> String {
