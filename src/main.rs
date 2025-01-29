@@ -3,27 +3,34 @@ use std::env;
 use std::io::{self, ErrorKind, Write};
 use std::path::PathBuf;
 use std::process::{Command, exit};
+use history::{add_to_history, read_history};
 use termion::input::TermRead;
 use termion::event::Key;
 use termion::raw::IntoRawMode;
 
 use config::{get_config, parse_prompt, create_config_file};
+use completion::read_path;
 use dirs::home_dir;
 use regex::Regex;
 
 mod builtins;
 mod config;
+mod completion;
+mod history;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let mut history_idx: usize = 0;
     if args.len() > 1 && args[1] == "--version" {
         println!("trishell {}", VERSION);
         return;
     }
 
+    read_history();
     create_config_file();
+    let mut longest_entry = history::longest_entry();
 
     let exe_path = env::current_exe().unwrap();
     env::set_var("SHELL", exe_path);
@@ -55,12 +62,39 @@ fn main() {
                     break;
                 },
                 Key::Char('\t') => {
-                    // TODO(i3vie): handle tab completion here
+                    #[cfg(debug_assertions)]
+                    {
+                        read_path();
+                    }
                     print!("{}", '\x07');
                 },
                 Key::Ctrl('c') => {
-                    // TODO(i3vie): uuuuuuuuuuuuuu
+                    print!("\r\n");
                     break;
+                }
+                Key::Up => {
+                    history_idx += 1;
+                    if let Some(command) = history::get_history_index(history_idx) {
+                        input = command;
+                        print!("\r{}\r{}", " ".repeat(prompt.len() + history::longest_entry()), prompt);
+                        print!("{}", input);
+                        stdout.flush().unwrap();
+                    }
+                }
+                Key::Down => {
+                    if history_idx > 0 {
+                        history_idx -= 1;
+                    }
+                    
+                    if let Some(command) = history::get_history_index(history_idx) {
+                        input = command;
+                    } else {
+                        input.clear();
+                    }
+                    
+                    print!("\r{}\r{}", " ".repeat(prompt.len() + history::longest_entry()), prompt);
+                    print!("{}", input);
+                    stdout.flush().unwrap();
                 }
                 Key::Ctrl('d') => {
                     print!("\r\n");
@@ -102,6 +136,9 @@ fn main() {
         }
         input = single_word_env_var_regex.replace_all(&input, "").trim().to_string();
 
+        add_to_history(&input);
+        longest_entry = if input.len() > longest_entry { input.len() } else { longest_entry };
+
         if input == "exit" {
             print!("\r\n");
             stdout.suspend_raw_mode().unwrap();
@@ -121,10 +158,10 @@ fn main() {
 
             let (effect, _response) = builtins::parse_builtins(command, updated_args.as_slice());
 
+            print!("\r\n");
             match effect {
                 builtins::ReturnedEffect::NoEffect => {}
                 builtins::ReturnedEffect::NoMatch => {
-                    print!("\r\n");
                     stdout.suspend_raw_mode().unwrap();
                     let status = Command::new(&mut *command)
                         .args(&updated_args)
@@ -142,6 +179,5 @@ fn main() {
                 }
             }
         }
-        print!("\r\n");
     }
 }

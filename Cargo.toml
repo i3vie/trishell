@@ -19,6 +19,7 @@ shell-words = "1.1.0"
 whoami = "1.5.2"
 yaml-rust = "0.4.5"
 termion = "4.0.3"
+lazy_static = "1.4.0"
 
 [dependencies.regex]
 version = "1.11.0"
