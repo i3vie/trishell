@@ -158,6 +158,7 @@ fn main() {
 
             let (effect, _response) = builtins::parse_builtins(command, updated_args.as_slice());
 
+            history_idx = 0;
             print!("\r\n");
             match effect {
                 builtins::ReturnedEffect::NoEffect => {}
